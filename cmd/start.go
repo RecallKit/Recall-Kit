@@ -2,8 +2,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -28,8 +26,8 @@ var startCmd = &cobra.Command{
 		// 2. The Ollama health check (from internal/engine)
 		// 3. The Bubble Tea TUI (from internal/tui)
 		
-		fmt.Println(asciiArt)
-		fmt.Println("🚀 Ready to build your context graph...")
+		cmd.Print(asciiArt)
+		cmd.Println("🚀 Ready to build your context graph...")
 	},
 }
 
