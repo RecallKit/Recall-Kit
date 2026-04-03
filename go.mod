@@ -1,4 +1,4 @@
-module github.com/RecallKit/Recall-Kit
+module github.com/RecallKit/recallkit
 
 go 1.24.5
 

@@ -4,7 +4,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/RecallKit/Recall-Kit/cmd/ui"
+	"github.com/RecallKit/recallkit/cmd/ui"
 	"github.com/spf13/cobra"
 )
 
