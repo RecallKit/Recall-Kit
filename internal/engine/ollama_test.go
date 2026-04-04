@@ -132,9 +132,7 @@ func TestListModels_NetworkError(t *testing.T) {
 	}
 }
 
-// ---------------------------------------------------------------------------
 // StreamChat
-// ---------------------------------------------------------------------------
 
 // buildNDJSON produces a newline-delimited sequence of chatChunk JSON lines.
 func buildNDJSON(chunks []chatChunk) string {
