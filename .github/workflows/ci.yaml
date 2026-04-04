@@ -28,12 +28,15 @@ jobs:
           cache: true
 
       - name: Verify dependencies
+        shell: bash
         run: go mod verify
 
       - name: Build
+        shell: bash
         run: go build ./...
 
       - name: Vet
+        shell: bash
         run: go vet ./...
 
       # -race requires CGO + a 64-bit GCC toolchain.
@@ -41,10 +44,12 @@ jobs:
       # the race runtime. Run the race detector only on Linux and macOS.
       - name: Test (with race detector)
         if: runner.os != 'Windows'
+        shell: bash
         run: go test -v -race -coverprofile=coverage.out ./...
 
       - name: Test (Windows — no race detector)
         if: runner.os == 'Windows'
+        shell: bash
         run: go test -v -coverprofile=coverage.out ./...
 
       - name: Upload coverage
