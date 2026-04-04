@@ -75,7 +75,10 @@ make build                        # equivalent to: go build -o recallkit .
 ```
 
 > [!IMPORTANT]
-> `make test-race` (the race detector) requires CGO and a native 64-bit GCC on Windows. On Linux/macOS it runs out of the box. For Windows contributors, `make test` (without `-race`) is the standard.
+> **`-race` does not work on Windows** without a 64-bit GCC toolchain. Git Bash ships a 32-bit MinGW GCC that cannot compile the CGO race runtime — you'll see `cc1.exe: sorry, unimplemented: 64-bit mode not compiled in`. This is expected, and the CI workflow handles it automatically (Linux/macOS run `-race`; Windows runs plain `go test`).
+>
+> To run `-race` locally on Windows, install a 64-bit GCC via [MSYS2](https://www.msys2.org/) (`pacman -S mingw-w64-x86_64-gcc`) or use WSL.
+
 
 ### UI contributors (Svelte frontend)
 

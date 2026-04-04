@@ -7,4 +7,6 @@ recallkit.exe
 ui/node_modules/
 ui/.svelte-kit/
 ui/.vite/
-ui/build/
+ui/build/
+
+coverage.out
