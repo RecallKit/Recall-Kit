@@ -9,6 +9,8 @@ Thank you for your interest in contributing! This document covers everything you
 - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
+  - [Go contributors (no Node required)](#go-contributors-no-node-required)
+  - [UI contributors (Svelte frontend)](#ui-contributors-svelte-frontend)
 - [Project Structure](#project-structure)
 - [Making Changes](#making-changes)
 - [Commit Guidelines](#commit-guidelines)
@@ -41,49 +43,66 @@ Please be respectful, constructive, and inclusive. We follow the [Contributor Co
 
 ## Development Setup
 
-### Prerequisites
+RecallKit has **two contributor personas** with different tooling requirements. The Svelte frontend assets are pre-built and committed to `ui/dist/`, so the Go binary always embeds a working UI without needing Node installed.
 
-| Tool | Version | Notes |
-|---|---|---|
-| [Go](https://go.dev/dl/) | 1.24+ | Primary language |
-| [Ollama](https://ollama.com/) | Latest | Local LLM runtime |
-| [Git](https://git-scm.com/) | 2.34+ | With GPG or SSH signing configured |
-| [Node.js](https://nodejs.org/) | 20+ LTS | Only needed for Svelte web UI work |
+> [!NOTE]
+> A `Makefile` is provided at the repo root. Run `make help` for a full list of targets.
 
-### Install dependencies
+### Go contributors (no Node required)
+
+If you're working on the core engine, TUI, CLI, or any Go code, you only need Go and Ollama:
+
+| Tool | Version |
+|---|---|
+| [Go](https://go.dev/dl/) | 1.24+ |
+| [Ollama](https://ollama.com/) | Latest |
+| [Git](https://git-scm.com/) | 2.34+ (with signing configured) |
 
 ```bash
+# Download Go module dependencies
 go mod download
-```
 
-### Run the project locally
-
-```bash
-# Make sure Ollama is running first
+# Run the TUI (make sure Ollama is running first)
 ollama serve &
 ollama pull llama3
-
-# Start the TUI
 go run . start
+
+# Run all tests
+make test                         # equivalent to: go test ./...
+
+# Build the binary
+make build                        # equivalent to: go build -o recallkit .
 ```
 
-### Run tests
+> [!IMPORTANT]
+> `make test-race` (the race detector) requires CGO and a native 64-bit GCC on Windows. On Linux/macOS it runs out of the box. For Windows contributors, `make test` (without `-race`) is the standard.
+
+### UI contributors (Svelte frontend)
+
+If you're modifying the web UI, you additionally need Node 20+:
+
+| Tool | Version |
+|---|---|
+| [Node.js](https://nodejs.org/) | 20+ LTS |
+| npm | bundled with Node |
 
 ```bash
-# All packages
-go test ./...
+# Install JS dependencies and build Svelte assets into ui/dist/
+make build-ui
 
-# Specific package with verbose output
-go test ./internal/engine/... -v
+# Hot-reload Svelte dev server (no Go binary needed)
+make dev-ui
 
-# With race detector (recommended before opening a PR)
-go test -race ./...
+# Build Go binary picking up your fresh ui/dist/ assets
+make build
 ```
 
-### Build the binary
+> [!IMPORTANT]
+> After running `make build-ui`, **commit the contents of `ui/dist/`** as part of your PR. This is the pre-built embed strategy — Go contributors on a fresh clone get a working binary without ever running Node.
 
 ```bash
-go build -o recallkit .
+git add ui/dist/
+git commit -m "chore(ui): rebuild frontend assets"
 ```
 
 ---

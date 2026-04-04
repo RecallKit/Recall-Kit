@@ -6,11 +6,11 @@
 
 ## Features
 
-- 🧠 **Persistent Context Graph** — embeds conversation nodes and relationships into a local [Kùzu](https://kuzudb.com/) graph database using Cypher queries
-- 💬 **Interactive TUI** — a full terminal chat interface powered by [Bubble Tea](https://github.com/charmbracelet/bubbletea)
-- 🌐 **Web UI** — a Svelte-compiled frontend served directly from the binary via `go:embed`
-- ⚡ **Local LLM** — streams responses from [Ollama](https://ollama.com/) running on your machine
-- 📦 **Zero dependencies** — single statically compiled binary, no background services required (beyond Ollama)
+- **Persistent Context Graph** — embeds conversation nodes and relationships into a local [Kùzu](https://kuzudb.com/) graph database using Cypher queries
+- **Interactive TUI** — a full terminal chat interface powered by [Bubble Tea](https://github.com/charmbracelet/bubbletea)
+- **Web UI** — a Svelte-compiled frontend served directly from the binary via `go:embed`
+- **Local LLM** — streams responses from [Ollama](https://ollama.com/) running on your machine
+- **Zero dependencies** — single statically compiled binary, no background services required (beyond Ollama)
 
 ---
 
@@ -97,15 +97,16 @@ recallkit/
 ## Development
 
 ```bash
-# Run tests
-go test ./...
-
-# Run with live reload (requires air)
-air
-
-# Build binary
-go build -o recallkit .
+make test        # run all tests (no Node needed)
+make build       # compile the binary
+make build-ui    # build Svelte assets → ui/dist/  (requires Node 20+)
+make dev-ui      # Svelte hot-reload dev server
+make lint        # go vet + staticcheck
+make clean       # remove binary and test cache
+make help        # full target list
 ```
+
+Go contributors never need Node/npm — pre-built frontend assets are committed to `ui/dist/` and embedded directly into the binary at compile time. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full two-persona setup guide.
 
 ---
 

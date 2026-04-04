@@ -1,5 +1,5 @@
-// Package tui_tests — tests for commands.go (MakeTokenPuller, cmdPing, cmdStartStream).
-// cmdPing and cmdStartStream are unexported; their behaviour is covered indirectly
+// Package tui_tests — tests for commands.go (MakeTokenPuller, CmdPing, CmdStartStream).
+// CmdPing and CmdStartStream are unexported; their behaviour is covered indirectly
 // by the model-level Update tests in models_test.go (PingResultMsg round-trips).
 // MakeTokenPuller is exported and tested directly below via pre-built channels.
 package tui_tests
@@ -10,7 +10,6 @@ import (
 
 	"github.com/RecallKit/recallkit/internal/tui"
 )
-
 
 // ---------------------------------------------------------------------------
 // MakeTokenPuller
@@ -116,7 +115,7 @@ func TestMakeTokenPuller_MultipleTokens_ChainedNextPull(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// cmdPing / cmdStartStream — tested indirectly through the model
+// CmdPing / CmdStartStream — tested indirectly through the model
 // ---------------------------------------------------------------------------
 // Both functions are unexported. Their message-routing behaviour is already
 // covered by the PingResultMsg and streaming tests in models_test.go.

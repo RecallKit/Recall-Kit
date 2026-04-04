@@ -7,16 +7,16 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// cmdPing checks Ollama is reachable.
-func cmdPing(client *engine.OllamaClient) tea.Cmd {
+// CmdPing checks Ollama is reachable.
+func CmdPing(client *engine.OllamaClient) tea.Cmd {
 	return func() tea.Msg {
 		return PingResultMsg{Err: client.Ping()}
 	}
 }
 
-// cmdStartStream launches an Ollama streaming request and returns a
+// CmdStartStream launches an Ollama streaming request and returns a
 // nextTokenFnMsg so the update loop can begin pulling tokens one at a time.
-func cmdStartStream(
+func CmdStartStream(
 	client *engine.OllamaClient,
 	model string,
 	history []engine.Message,

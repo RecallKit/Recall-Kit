@@ -13,7 +13,7 @@ import (
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		textarea.Blink,
-		cmdPing(m.client),
+		CmdPing(m.client),
 	)
 }
 
@@ -91,7 +91,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport.SetContent(m.renderHistory())
 			m.viewport.GotoBottom()
 
-			return m, cmdStartStream(m.client, m.ollamaModel, m.history)
+			return m, CmdStartStream(m.client, m.ollamaModel, m.history)
 		}
 
 	// ── Stream: channels ready, start pulling ────────────────────────────────
