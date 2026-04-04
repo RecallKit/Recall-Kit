@@ -1,55 +1,21 @@
-name: CI
+name: DCO
 
 on:
   pull_request:
     branches: ["main", "dev"]
-  push:
-    branches: ["main"]
 
 jobs:
-  test:
-    name: Build & Test
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        go: ["1.24"]
+  dco:
+    name: DCO Sign-off Check
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go }}
-          cache: true
+          fetch-depth: 0 # full history so we can inspect all commits in the PR
 
-      - name: Verify dependencies
-        run: go mod verify
-
-      - name: Build
-        run: go build ./...
-
-      - name: Vet
-        run: go vet ./...
-
-      # -race requires CGO + a 64-bit GCC toolchain.
-      # GitHub's Windows runner ships a 32-bit MinGW GCC which cannot compile
-      # the race runtime. Run the race detector only on Linux and macOS.
-      - name: Test (with race detector)
-        if: runner.os != 'Windows'
-        run: go test -v -race -coverprofile=coverage.out ./...
-
-      - name: Test (Windows — no race detector)
-        if: runner.os == 'Windows'
-        run: go test -v -coverprofile=coverage.out ./...
-
-      - name: Upload coverage
-        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.24'
-        uses: actions/upload-artifact@v4
+      - name: Check DCO sign-off
+        uses: tim-actions/dco@master
         with:
-          name: coverage-report
-          path: coverage.out
+          token: ${{ secrets.GITHUB_TOKEN }}
