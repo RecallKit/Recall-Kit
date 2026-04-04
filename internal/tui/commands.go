@@ -10,7 +10,7 @@ import (
 // cmdPing checks Ollama is reachable.
 func cmdPing(client *engine.OllamaClient) tea.Cmd {
 	return func() tea.Msg {
-		return pingResultMsg{err: client.Ping()}
+		return PingResultMsg{Err: client.Ping()}
 	}
 }
 
@@ -25,31 +25,31 @@ func cmdStartStream(
 		tokenCh := make(chan string, 64)
 		errCh := make(chan error, 1)
 		client.StreamChat(context.Background(), model, history, tokenCh, errCh)
-		return nextTokenFnMsg(makeTokenPuller(tokenCh, errCh))
+		return nextTokenFnMsg(MakeTokenPuller(tokenCh, errCh))
 	}
 }
 
-// makeTokenPuller returns a Cmd that reads exactly one item from the stream
-// channels. On success it returns a tokenMsg that embeds the *next* puller,
+// MakeTokenPuller returns a Cmd that reads exactly one item from the stream
+// channels. On success it returns a TokenMsg that embeds the *next* puller,
 // so the update loop can keep scheduling without holding any shared state.
-func makeTokenPuller(tokenCh <-chan string, errCh <-chan error) tea.Cmd {
+func MakeTokenPuller(tokenCh <-chan string, errCh <-chan error) tea.Cmd {
 	return func() tea.Msg {
 		select {
 		case token, ok := <-tokenCh:
 			if !ok {
 				select {
 				case err := <-errCh:
-					return streamErrMsg{err: err}
+					return StreamErrMsg{Err: err}
 				default:
-					return streamDoneMsg{}
+					return StreamDoneMsg{}
 				}
 			}
-			return tokenMsg{
-				token:    token,
-				nextPull: makeTokenPuller(tokenCh, errCh),
+			return TokenMsg{
+				Token:    token,
+				NextPull: MakeTokenPuller(tokenCh, errCh),
 			}
 		case err := <-errCh:
-			return streamErrMsg{err: err}
+			return StreamErrMsg{Err: err}
 		}
 	}
 }

@@ -27,7 +27,6 @@ var startCmd = &cobra.Command{
 		// 3. The Bubble Tea TUI (from internal/tui)
 
 		cmd.Print(asciiArt)
-		cmd.Println("Ready to build your context graph...")
 	},
 }
 

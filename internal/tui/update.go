@@ -50,10 +50,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	// ── Ollama startup ping ──────────────────────────────────────────────────
-	case pingResultMsg:
-		if msg.err != nil {
+	case PingResultMsg:
+		if msg.Err != nil {
 			m.status = statusError
-			m.err = msg.err
+			m.err = msg.Err
 			return m, nil
 		}
 		m.status = statusIdle
@@ -100,14 +100,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Cmd(msg) // schedule the first pull
 
 	// ── Stream: one token arrived ────────────────────────────────────────────
-	case tokenMsg:
-		m.streamBuf += msg.token
+	case TokenMsg:
+		m.streamBuf += msg.Token
 		m.viewport.SetContent(m.renderHistory())
 		m.viewport.GotoBottom()
-		return m, msg.nextPull // schedule next pull immediately
+		return m, msg.NextPull // schedule next pull immediately
 
 	// ── Stream: finished cleanly ─────────────────────────────────────────────
-	case streamDoneMsg:
+	case StreamDoneMsg:
 		if m.streamBuf != "" {
 			m.messages = append(m.messages, ChatMessage{
 				Role:    "assistant",
@@ -123,10 +123,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.viewport.SetContent(m.renderHistory())
 		m.viewport.GotoBottom()
 
-	// ── Stream: error ────────────────────────────────────────────────────────
-	case streamErrMsg:
+	// ── Stream: error ─────────────────────────────────────────────────────────
+	case StreamErrMsg:
 		m.streamBuf = ""
-		m.err = msg.err
+		m.err = msg.Err
 		m.status = statusError
 		m.viewport.SetContent(m.renderHistory())
 	}
