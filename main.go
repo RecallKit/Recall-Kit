@@ -2,7 +2,7 @@
 package main
 
 import (
-	"github.com/RecallKit/Recall-Kit/cmd"
+	"github.com/RecallKit/recallkit/cmd"
 )
 
 func main() {

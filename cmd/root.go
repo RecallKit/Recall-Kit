@@ -4,6 +4,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/RecallKit/recallkit/cmd/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -22,5 +23,6 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.AddCommand(ui.Cmd)
 	// You can define global flags here later (e.g., --config, --verbose)
 }

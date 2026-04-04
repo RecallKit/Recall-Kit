@@ -1,0 +1,7 @@
+# This file ensures ui/dist/ is tracked by Git on fresh clones.
+#
+# Go's `go:embed` directive requires the directory to exist at compile time.
+# Pre-built Svelte assets are committed here so contributors who only work
+# on Go code never need Node/npm installed.
+#
+# To regenerate from source: make build-ui

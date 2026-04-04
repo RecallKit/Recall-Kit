@@ -25,9 +25,8 @@ var startCmd = &cobra.Command{
 		// 1. The Kùzu/SQLite DB connection (from internal/db)
 		// 2. The Ollama health check (from internal/engine)
 		// 3. The Bubble Tea TUI (from internal/tui)
-		
+
 		cmd.Print(asciiArt)
-		cmd.Println("🚀 Ready to build your context graph...")
 	},
 }
 

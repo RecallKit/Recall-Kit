@@ -1,0 +1,12 @@
+# Compiled binaries
+recall
+recallkit
+recallkit.exe
+
+# Node / Svelte tooling (ui/dist/ is intentionally committed — see Makefile)
+ui/node_modules/
+ui/.svelte-kit/
+ui/.vite/
+ui/build/
+
+coverage.out
