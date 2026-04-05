@@ -49,20 +49,20 @@ func TestPing_Unreachable(t *testing.T) {
 // ListModels
 
 func TestListModels_Success(t *testing.T) {
-	want := []string{"llama3", "mistral"}
+	want := []ModelInfo{
+		{Name: "llama3", ModifiedAt: "2024-01-01T00:00:00Z", Size: 4_000_000_000},
+		{Name: "mistral", ModifiedAt: "2024-02-01T00:00:00Z", Size: 7_000_000_000},
+	}
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/tags" {
 			http.NotFound(w, r)
 			return
 		}
-		type model struct {
-			Name string `json:"name"`
-		}
 		resp := struct {
-			Models []model `json:"models"`
+			Models []ModelInfo `json:"models"`
 		}{
-			Models: []model{{Name: "llama3"}, {Name: "mistral"}},
+			Models: want,
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(resp)
@@ -77,9 +77,15 @@ func TestListModels_Success(t *testing.T) {
 	if len(got) != len(want) {
 		t.Fatalf("ListModels() returned %d models, want %d", len(got), len(want))
 	}
-	for i, name := range want {
-		if got[i] != name {
-			t.Errorf("ListModels()[%d] = %q, want %q", i, got[i], name)
+	for i, w := range want {
+		if got[i].Name != w.Name {
+			t.Errorf("ListModels()[%d].Name = %q, want %q", i, got[i].Name, w.Name)
+		}
+		if got[i].ModifiedAt != w.ModifiedAt {
+			t.Errorf("ListModels()[%d].ModifiedAt = %q, want %q", i, got[i].ModifiedAt, w.ModifiedAt)
+		}
+		if got[i].Size != w.Size {
+			t.Errorf("ListModels()[%d].Size = %d, want %d", i, got[i].Size, w.Size)
 		}
 	}
 }
