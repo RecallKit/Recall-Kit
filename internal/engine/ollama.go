@@ -17,7 +17,7 @@ func NewOllamaClient() *OllamaClient {
 	return &OllamaClient{
 		BaseURL: defaultOllamaURL,
 		http: &http.Client{
-			Timeout: 0, // no timeout — streams can be long
+			Timeout: 0,
 		},
 	}
 }
@@ -31,30 +31,6 @@ func (c *OllamaClient) Ping() error {
 	}
 	resp.Body.Close()
 	return nil
-}
-
-// ListModels returns the names of all locally available Ollama models.
-func (c *OllamaClient) ListModels() ([]string, error) {
-	resp, err := c.http.Get(c.BaseURL + "/api/tags")
-	if err != nil {
-		return nil, fmt.Errorf("list models: %w", err)
-	}
-	defer resp.Body.Close()
-
-	var result struct {
-		Models []struct {
-			Name string `json:"name"`
-		} `json:"models"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("decode models: %w", err)
-	}
-
-	names := make([]string, len(result.Models))
-	for i, m := range result.Models {
-		names[i] = m.Name
-	}
-	return names, nil
 }
 
 // StreamChat sends messages to Ollama and streams token chunks into tokenCh.
