@@ -17,7 +17,7 @@ func NewOllamaClient() *OllamaClient {
 	return &OllamaClient{
 		BaseURL: defaultOllamaURL,
 		http: &http.Client{
-			Timeout: 0, // no timeout — streams can be long
+			Timeout: 0,
 		},
 	}
 }
