@@ -133,7 +133,7 @@ func startOllamaDaemon() error {
 	}
 
 	// Poll until ready or timeout
-	deadline := time.Now().Add(5 * time.Second)
+	deadline := time.Now().Add(15 * time.Second)
 	for time.Now().Before(deadline) {
 		if isOllamaRunning() {
 			return nil
