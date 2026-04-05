@@ -122,7 +122,7 @@ func installWindows() error {
 // ── Daemon management ─────────────────────────────────────────────────────────
 
 // startOllamaDaemon starts `ollama serve` as a background process and
-// waits up to 5 seconds for the HTTP API to become reachable.
+// waits up to 15 seconds for the HTTP API to become reachable.
 func startOllamaDaemon() error {
 	cmd := exec.Command("ollama", "serve")
 	cmd.Stdout = nil // detach stdout — we don't want it in the terminal
