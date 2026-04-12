@@ -8,7 +8,7 @@ import (
 )
 
 // CmdPing checks Ollama is reachable.
-func CmdPing(client *engine.OllamaClient) tea.Cmd {
+func cmdPing(client *engine.OllamaClient) tea.Cmd {
 	return func() tea.Msg {
 		return PingResultMsg{Err: client.Ping()}
 	}
@@ -16,7 +16,7 @@ func CmdPing(client *engine.OllamaClient) tea.Cmd {
 
 // CmdStartStream launches an Ollama streaming request and returns a
 // nextTokenFnMsg so the update loop can begin pulling tokens one at a time.
-func CmdStartStream(
+func cmdStartStream(
 	client *engine.OllamaClient,
 	model string,
 	history []engine.Message,

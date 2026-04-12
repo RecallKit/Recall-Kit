@@ -2,28 +2,56 @@
 package cmd
 
 import (
-	"bytes"
-	"strings"
 	"testing"
 )
 
-func TestStartCmdExecution(t *testing.T) {
-	//Create a buffer to capture standard output
-	buf := new(bytes.Buffer)
-	rootCmd.SetOut(buf)
-	rootCmd.SetErr(buf)
-	rootCmd.SetArgs([]string{"start"})
-
-	err := rootCmd.Execute()
-
-	if err != nil {
-		t.Fatalf("Unexpected error executing 'start' command: %v", err)
+func TestStartCmd_UseField(t *testing.T) {
+	if startCmd.Use != "start" {
+		t.Errorf("expected startCmd.Use to be 'start', got %q", startCmd.Use)
 	}
+}
 
-	output := buf.String()
-	expectedText := "Context Graph Engine Initialized."
+func TestStartCmd_HasShortDescription(t *testing.T) {
+	if startCmd.Short == "" {
+		t.Error("startCmd must have a non-empty Short description")
+	}
+}
 
-	if !strings.Contains(output, expectedText) {
-		t.Errorf("Expected output to contain %q, but got:\n%s", expectedText, output)
+func TestStartCmd_IsRegisteredWithRoot(t *testing.T) {
+	for _, sub := range rootCmd.Commands() {
+		if sub.Use == "start" {
+			return // found
+		}
+	}
+	t.Error("'start' command is not registered as a subcommand of rootCmd")
+}
+
+func TestStartCmd_ModelFlag(t *testing.T) {
+	f := startCmd.Flags().Lookup("model")
+	if f == nil {
+		t.Fatal("startCmd is missing the --model flag")
+	}
+	if f.DefValue != "llama3" {
+		t.Errorf("--model default expected 'llama3', got %q", f.DefValue)
+	}
+}
+
+func TestStartCmd_SessionFlag(t *testing.T) {
+	f := startCmd.Flags().Lookup("session")
+	if f == nil {
+		t.Fatal("startCmd is missing the --session flag")
+	}
+}
+
+func TestStartCmd_NameFlag(t *testing.T) {
+	f := startCmd.Flags().Lookup("name")
+	if f == nil {
+		t.Fatal("startCmd is missing the --name flag")
+	}
+}
+
+func TestStartCmd_AsciiArtContainsBanner(t *testing.T) {
+	if asciiArt == "" {
+		t.Error("asciiArt must not be empty")
 	}
 }

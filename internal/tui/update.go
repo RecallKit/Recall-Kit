@@ -3,7 +3,6 @@ package tui
 import (
 	"strings"
 
-	"github.com/RecallKit/recallkit/internal/engine"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,7 +12,7 @@ import (
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		textarea.Blink,
-		CmdPing(m.client),
+		cmdPing(m.client),
 	)
 }
 
@@ -57,9 +56,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		m.status = statusIdle
+
+		// For resumed sessions show a different greeting
+		welcomeMsg := "Connected to Ollama · model: " + m.sess.Model + "\nHow can I help you today?"
+		if len(m.sess.Messages) > 0 {
+			welcomeMsg = "Resumed session: " + m.sess.Name + " · model: " + m.sess.Model
+		}
 		m.messages = append(m.messages, ChatMessage{
 			Role:    "assistant",
-			Content: "Connected to Ollama · model: " + m.ollamaModel + "\nHow can I help you today?",
+			Content: welcomeMsg,
 		})
 		m.viewport.SetContent(m.renderHistory())
 		m.viewport.GotoBottom()
@@ -85,13 +90,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			m.messages = append(m.messages, ChatMessage{Role: "user", Content: userText})
-			m.history = append(m.history, engine.Message{Role: "user", Content: userText})
+			_ = m.store.AppendMessage(m.sess, "user", userText)
 			m.input.Reset()
 			m.status = statusThinking
 			m.viewport.SetContent(m.renderHistory())
 			m.viewport.GotoBottom()
 
-			return m, CmdStartStream(m.client, m.ollamaModel, m.history)
+			return m, cmdStartStream(m.client, m.sess.Model, m.sess.Messages)
 		}
 
 	// ── Stream: channels ready, start pulling ────────────────────────────────
@@ -113,17 +118,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				Role:    "assistant",
 				Content: m.streamBuf,
 			})
-			m.history = append(m.history, engine.Message{
-				Role:    "assistant",
-				Content: m.streamBuf,
-			})
+			_ = m.store.AppendMessage(m.sess, "assistant", m.streamBuf)
 			m.streamBuf = ""
 		}
 		m.status = statusIdle
 		m.viewport.SetContent(m.renderHistory())
 		m.viewport.GotoBottom()
 
-	// ── Stream: error ─────────────────────────────────────────────────────────
+	// ── Stream: error ────────────────────────────────────────────────────────
 	case StreamErrMsg:
 		m.streamBuf = ""
 		m.err = msg.Err
