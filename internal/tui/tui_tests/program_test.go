@@ -58,14 +58,12 @@ func TestNewModel_LongModelName(t *testing.T) {
 
 // TestStart_Signature verifies that the Start() function in program.go has the
 // expected signature: func Start(sess *session.Session, store *session.Store) error.
-// This is a compile-time check; if the signature changes, this test file will not compile.
+// This is a compile-time check; if the signature changes, this file will not compile.
 func TestStart_Signature(t *testing.T) {
-	// We can't call Start() in a unit test without a real terminal.
-	// Instead we verify the function value has the correct type.
-	var fn func(*session.Session, *session.Store) error = tui.Start
-	if fn == nil {
-		t.Error("tui.Start must be a non-nil function")
-	}
+	// Named functions are never nil — a nil check on tui.Start is an impossible
+	// condition that go vet correctly rejects. Use the blank identifier instead:
+	// the assignment is the check. If Start's signature changes, this won't compile.
+	var _ func(*session.Session, *session.Store) error = tui.Start
 }
 
 // ---------------------------------------------------------------------------
