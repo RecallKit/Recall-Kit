@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -17,7 +18,7 @@ func NewOllamaClient() *OllamaClient {
 	return &OllamaClient{
 		BaseURL: defaultOllamaURL,
 		http: &http.Client{
-			Timeout: 0,
+			Timeout: 0, // no timeout — streams can be long
 		},
 	}
 }
@@ -33,9 +34,35 @@ func (c *OllamaClient) Ping() error {
 	return nil
 }
 
+// ValidateModel checks that the given model is available locally.
+// Returns a clear error with available models listed if not found.
+func (c *OllamaClient) ValidateModel(model string) error {
+	models, err := c.ListModels()
+	if err != nil {
+		return fmt.Errorf("could not list models: %w", err)
+	}
+
+	for _, m := range models {
+		if m.Name == model {
+			return nil
+		}
+	}
+
+	// Build a helpful error listing what IS available
+	msg := fmt.Sprintf("model %q not found in Ollama.\n\n  Installed models:\n", model)
+	if len(models) == 0 {
+		msg += "    (none — run `ollama pull <model>` to install one)\n"
+	} else {
+		for _, m := range models {
+			msg += fmt.Sprintf("    • %s\n", m.Name)
+		}
+		msg += "\n  Use one of the above with: recallkit start --model <name>"
+	}
+	return errors.New(msg)
+}
+
 // StreamChat sends messages to Ollama and streams token chunks into tokenCh.
 // The channel is closed when streaming completes. Errors are sent to errCh.
-// Call this in a goroutine or let it manage its own goroutine internally.
 func (c *OllamaClient) StreamChat(
 	ctx context.Context,
 	model string,
@@ -71,6 +98,10 @@ func (c *OllamaClient) StreamChat(
 		}
 		defer resp.Body.Close()
 
+		if resp.StatusCode == http.StatusNotFound {
+			errCh <- fmt.Errorf("model not found — run `ollama list` to see installed models, or `ollama pull <model>` to install one")
+			return
+		}
 		if resp.StatusCode != http.StatusOK {
 			errCh <- fmt.Errorf("ollama returned status %d", resp.StatusCode)
 			return

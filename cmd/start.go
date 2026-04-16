@@ -1,9 +1,9 @@
-// cmd/start.go
 package cmd
 
 import (
 	"fmt"
 
+	"github.com/RecallKit/recallkit/internal/engine"
 	"github.com/RecallKit/recallkit/internal/session"
 	"github.com/RecallKit/recallkit/internal/tui"
 	"github.com/spf13/cobra"
@@ -16,7 +16,7 @@ const asciiArt = `
  |  _  // _ \/ __|/ _` + "`" + ` | | |  < | | __|
  | | \ \  __/ (__| (_| | | | . \| | |_ 
  |_|  \_\___|\___|\__,_|_|_|_|\_\_|\__|
-                                       
+
  Context Graph Engine Initialized.
 `
 
@@ -32,6 +32,12 @@ var startCmd = &cobra.Command{
 	Long:  `Initializes the local context graph and boots up the interactive terminal UI.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Print(asciiArt)
+
+		// Validate the model exists before doing anything else
+		client := engine.NewOllamaClient()
+		if err := client.ValidateModel(ollamaModel); err != nil {
+			return err
+		}
 
 		store, err := session.NewStore()
 		if err != nil {
