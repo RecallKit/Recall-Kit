@@ -17,7 +17,7 @@ func (m Model) View() string {
 
 	// ── Header ───────────────────────────────────────────────────────────────
 	header := headerStyle.Width(m.width).Render(
-		" ◈ RecallKit  ·  " + m.ollamaModel,
+		" ◈ RecallKit  ·  " + m.sess.Name + "  ·  " + m.sess.Model,
 	)
 	sb.WriteString(header + "\n")
 

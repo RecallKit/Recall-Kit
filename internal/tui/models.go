@@ -2,58 +2,58 @@ package tui
 
 import (
 	"github.com/RecallKit/recallkit/internal/engine"
+	"github.com/RecallKit/recallkit/internal/session"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
 )
 
-type status int //tracks what the TUI is currently doing
+type status int
 
 const (
-	statusIdle       status = iota
-	statusConnecting        // pinging Ollama on startup
-	statusThinking          // waiting for first token
-	statusStreaming         // tokens arriving
-	statusError             // unrecoverable error shown to user
+	statusIdle status = iota
+	statusConnecting
+	statusThinking
+	statusStreaming
+	statusError
 )
 
 // ChatMessage is one rendered bubble in the history pane.
 type ChatMessage struct {
-	Role    string // "user" | "assistant"
+	Role    string
 	Content string
 }
 
-// Model is the root Bubble Tea state — everything the view needs lives here.
+// Model is the root Bubble Tea state.
 type Model struct {
-	// config
-	ollamaModel string
-	client      *engine.OllamaClient
+	// session
+	sess  *session.Session
+	store *session.Store
+
+	// engine
+	client *engine.OllamaClient
 
 	// conversation
-	history   []engine.Message
-	messages  []ChatMessage
+	messages  []ChatMessage // rendered display history
 	streamBuf string
 
-	// ui components
+	// ui
 	viewport viewport.Model
 	input    textarea.Model
-
-	// state
-	status status
-	err    error
-	width  int
-	height int
-	ready  bool
+	status   status
+	err      error
+	width    int
+	height   int
+	ready    bool
 }
 
-// styles used across update + view
 var (
 	userStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color("69")) // soft blue
+			Foreground(lipgloss.Color("69"))
 
 	assistantStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("78")) // soft green
+			Foreground(lipgloss.Color("78"))
 
 	dimStyle = lipgloss.NewStyle().
 			Faint(true)
@@ -74,23 +74,30 @@ var (
 				Padding(0, 1)
 )
 
-// NewModel builds the initial TUI model.
-func NewModel(ollamaModel string, client *engine.OllamaClient) Model {
+// NewModel builds the TUI model from an existing or new session.
+func NewModel(sess *session.Session, store *session.Store, client *engine.OllamaClient) Model {
 	ta := textarea.New()
 	ta.Placeholder = "Type a message and press Enter…"
 	ta.Focus()
 	ta.SetHeight(3)
 	ta.ShowLineNumbers = false
 	ta.CharLimit = 4000
-
-	// Remove the default textarea border — we wrap it ourselves
 	ta.FocusedStyle.Base = lipgloss.NewStyle()
 	ta.BlurredStyle.Base = lipgloss.NewStyle()
 
+	// Populate rendered messages from session history so resumed
+	// sessions show previous turns immediately on load.
+	var messages []ChatMessage
+	for _, m := range sess.Messages {
+		messages = append(messages, ChatMessage{Role: m.Role, Content: m.Content})
+	}
+
 	return Model{
-		ollamaModel: ollamaModel,
-		client:      client,
-		input:       ta,
-		status:      statusConnecting,
+		sess:     sess,
+		store:    store,
+		client:   client,
+		messages: messages,
+		input:    ta,
+		status:   statusConnecting,
 	}
 }

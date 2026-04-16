@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/RecallKit/recallkit/internal/engine"
+	"github.com/RecallKit/recallkit/internal/session"
 	"github.com/RecallKit/recallkit/internal/tui"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -15,11 +16,27 @@ import (
 // Test helpers
 // ---------------------------------------------------------------------------
 
-// newTestModel creates a freshly constructed Model for use in tests.
+// newTestModelWithModel creates a Model backed by a real session with the
+// given Ollama model name. The session file is cleaned up after the test.
+func newTestModelWithModel(t *testing.T, modelName string) tui.Model {
+	t.Helper()
+	store, err := session.NewStore()
+	if err != nil {
+		t.Fatalf("newTestModelWithModel: NewStore: %v", err)
+	}
+	sess, err := store.Create("test", modelName)
+	if err != nil {
+		t.Fatalf("newTestModelWithModel: Create session: %v", err)
+	}
+	t.Cleanup(func() { _ = store.Delete(sess.ID) })
+	client := engine.NewOllamaClient()
+	return tui.NewModel(sess, store, client)
+}
+
+// newTestModel creates a freshly constructed Model with model "llama3".
 func newTestModel(t *testing.T) tui.Model {
 	t.Helper()
-	client := engine.NewOllamaClient()
-	return tui.NewModel("llama3", client)
+	return newTestModelWithModel(t, "llama3")
 }
 
 // makeReady sends a WindowSizeMsg to the model so it transitions to the
@@ -62,9 +79,8 @@ func TestNewModel_ImplementsTeaModel(t *testing.T) {
 
 func TestNewModel_DifferentModels(t *testing.T) {
 	models := []string{"llama3", "mistral", "phi3", "gemma", "codellama"}
-	client := engine.NewOllamaClient()
 	for _, name := range models {
-		m := tui.NewModel(name, client)
+		m := newTestModelWithModel(t, name)
 		var _ tea.Model = m
 		if m.View() == "" {
 			t.Errorf("NewModel(%q).View() returned empty string", name)
@@ -78,7 +94,16 @@ func TestNewModel_NilClientDoesNotPanic(t *testing.T) {
 			t.Errorf("NewModel panicked with nil client: %v", r)
 		}
 	}()
-	_ = tui.NewModel("test", nil)
+	store, err := session.NewStore()
+	if err != nil {
+		t.Fatalf("NewStore: %v", err)
+	}
+	sess, err := store.Create("test-nil-client", "test")
+	if err != nil {
+		t.Fatalf("Create session: %v", err)
+	}
+	t.Cleanup(func() { _ = store.Delete(sess.ID) })
+	_ = tui.NewModel(sess, store, nil)
 }
 
 // ---------------------------------------------------------------------------
@@ -155,7 +180,7 @@ func TestUpdate_WindowSizeMsg_Resize(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// Update — pingResultMsg (exported alias)
+// Update — PingResultMsg
 // ---------------------------------------------------------------------------
 
 func TestUpdate_PingSuccess_HeaderShowsModel(t *testing.T) {
@@ -205,9 +230,9 @@ func TestUpdate_Enter_EmptyInput_NoStream(t *testing.T) {
 
 func TestUpdate_Enter_WhileThinking_IsNoop(t *testing.T) {
 	m := makeReadyAndIdle(t, newTestModel(t))
-	// Manually set the model into thinking status by injecting a token
+	// Inject a token to put the model into streaming state
 	m2, _ := m.Update(tui.TokenMsg{Token: "…"})
-	// Pressing Enter while thinking should return nil cmd (blocked)
+	// Pressing Enter while streaming should return nil cmd (blocked)
 	_, cmd := m2.(tui.Model).Update(tea.KeyMsg{Type: tea.KeyEnter})
 	_ = cmd // just ensure no panic
 }
@@ -253,7 +278,7 @@ func TestUpdate_StreamDoneMsg_ContentMovesToHistory(t *testing.T) {
 
 func TestUpdate_StreamDoneMsg_EmptyStreamBuf_NoExtraMessage(t *testing.T) {
 	m := makeReadyAndIdle(t, newTestModel(t))
-	// streamBuf is empty → streamDoneMsg should not append a blank message
+	// streamBuf is empty → StreamDoneMsg should not append a blank message
 	m2, _ := m.Update(tui.StreamDoneMsg{})
 	v := m2.(tui.Model).View()
 	// Should not panic; view should still be valid

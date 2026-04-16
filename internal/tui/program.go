@@ -2,13 +2,14 @@ package tui
 
 import (
 	"github.com/RecallKit/recallkit/internal/engine"
+	"github.com/RecallKit/recallkit/internal/session"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 // Start launches the Bubble Tea program. It blocks until the user quits.
-func Start(ollamaModel string) error {
+func Start(sess *session.Session, store *session.Store) error {
 	client := engine.NewOllamaClient()
-	m := NewModel(ollamaModel, client)
+	m := NewModel(sess, store, client)
 
 	p := tea.NewProgram(
 		m,
